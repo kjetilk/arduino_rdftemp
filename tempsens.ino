@@ -1,20 +1,32 @@
 #include <OneWire.h>
+#include <Time.h>
 
 #define LED 13
 #define TEMPPIN 2
 #define SERIAL_BAUD   9600
+#define TIME_HEADER  "T"   // Header tag for serial time sync message
+#define TIME_REQUEST  7    // ASCII bell character requests a time sync message 
+
 
 void setup(void) {
   Serial.begin(SERIAL_BAUD);
+  setSyncProvider( requestSync);  // Syncing for timestamp
 }
 
 void loop(void) {
+  
+  if (Serial.available()) {
+    processSyncMessage();
+  } else {
+    Serial.println("No time sync");
+  }
+
   for (int i=9;i<13;i++){
   handleOWIO(TEMPPIN,i);
   Serial.println();
 }
 
-delay(1000);
+  delay(1000);
   Blink(LED,3);
 }
 
@@ -26,6 +38,7 @@ void handleOWIO(byte pin, byte resolution) {
   OneWire myds(owpin);
   getfirstdsadd(myds,dsaddr);
 
+  Serial.print(now());
   Serial.print(F("dsaddress:"));
   int j;
   for (j=0;j<8;j++) {
@@ -183,3 +196,23 @@ void Blink(byte PIN, int DELAY_MS)
   delay(DELAY_MS);
   digitalWrite(PIN,LOW);
 }
+
+
+void processSyncMessage() {
+  unsigned long pctime;
+  const unsigned long DEFAULT_TIME = 1357041600; // Jan 1 2013
+
+  if(Serial.find(TIME_HEADER)) {
+     pctime = Serial.parseInt();
+     if( pctime >= DEFAULT_TIME) { // check the integer is a valid time (greater than Jan 1 2013)
+       setTime(pctime); // Sync Arduino clock to the time received on the serial port
+     }
+  }
+}
+
+time_t requestSync()
+{
+  Serial.write(TIME_REQUEST);  
+  return 0; // the time will be sent later in response to serial mesg
+}
+
