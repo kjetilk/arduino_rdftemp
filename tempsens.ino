@@ -10,11 +10,11 @@ void setup(void) {
 
 void loop(void) {
   for (int i=9;i<13;i++){
-  handleOWIO(TEMPPIN,i);
-  Serial.println();
-}
+    handleOWIO(TEMPPIN,i);
+    Serial.println();
+  }
 
-delay(1000);
+  delay(1000);
   Blink(LED,3);
 }
 
