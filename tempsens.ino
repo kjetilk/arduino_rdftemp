@@ -4,6 +4,11 @@
 #define TEMPPIN 2
 #define SERIAL_BAUD   9600
 
+String headRDF = "@prefix s: <http://schema.org/>.@prefix x: <http://purl.org/mosd/>.x:D_0001 a s:DataSet;s:serialNumber \"";
+String bodyRDF = "\";s:additionalProperty [a s:PropertyValue;s:name \"temperature\";s:value " ;
+String footRDF = ";s:unitCode \"CEL\"].";
+
+
 void setup(void) {
   Serial.begin(SERIAL_BAUD);
 }
@@ -26,7 +31,7 @@ void handleOWIO(byte pin, byte resolution) {
   OneWire myds(owpin);
   getfirstdsadd(myds,dsaddr);
 
-  Serial.print(F("dsaddress:"));
+  Serial.print(headRDF);
   int j;
   for (j=0;j<8;j++) {
     if (dsaddr[j] < 16) {
@@ -36,7 +41,8 @@ void handleOWIO(byte pin, byte resolution) {
 }
 // Data
 
-Serial.println(getdstemp(myds, dsaddr, resolution));
+Serial.print(getdstemp(myds, dsaddr, resolution));
+Serial.println(footRDF);
 
 } // run OW sequence
 
@@ -130,9 +136,9 @@ float getdstemp(OneWire myds, byte addr[8], byte resolution) {
   while (!myds.read()) {
     // do nothing
   }
-  Serial.print("Conversion took: ");
+/*  Serial.print("Conversion took: ");
   Serial.print(millis() - starttime);
-  Serial.println(" ms");
+  Serial.println(" ms");*/
 
   //delay(1000);     // maybe 750ms is enough, maybe not
   // we might do a ds.depower() here, but the reset will take care of it.
@@ -143,15 +149,15 @@ float getdstemp(OneWire myds, byte addr[8], byte resolution) {
 
   //Serial.print("  Data = ");
   //Serial.print(present,HEX);
-  Serial.println("Raw Scratchpad Data: ");
+  //Serial.println("Raw Scratchpad Data: ");
   for ( i = 0; i < 9; i++) {           // we need 9 bytes
     data[i] = myds.read();
-    Serial.print(data[i], HEX);
-    Serial.print(" ");
+ //   Serial.print(data[i], HEX);
+ //   Serial.print(" ");
   }
   //Serial.print(" CRC=");
   //Serial.print(OneWire::crc8(data, 8), HEX);
-  Serial.println();
+  //Serial.println();
 
   // convert the data to actual temperature
 
@@ -170,8 +176,8 @@ float getdstemp(OneWire myds, byte addr[8], byte resolution) {
     }
   }
   celsius = (float)raw / 16.0;
-  fahrenheit = celsius * 1.8 + 32.0;
-  Serial.print("Temp (C): ");
+  Serial.print(bodyRDF);
+  //Serial.print("Temp (C): ");
   //Serial.println(celsius);
   return celsius;
 }
